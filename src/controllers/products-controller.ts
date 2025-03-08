@@ -5,8 +5,14 @@ import { z } from "zod"
 class ProductController {
   async index(req: Request, res: Response, next: NextFunction) {
     try {
+      const { name } = req.query
+      const products = await knex<ProductRepository>("products")
+        .select()
+        .whereLike("name", `%${name ?? ""}%`)
+        .orderBy("name")
 
-      return res.json({ message: "OK" })
+
+      return res.json(products)
     } catch (error) {
       next(error)
     }
@@ -21,7 +27,7 @@ class ProductController {
 
       const { name, price } = bodySchema.parse(req.body)
 
-      await knex<ProductRepository>("products").insert({name, price})
+      await knex<ProductRepository>("products").insert({ name, price })
 
       return res.status(201).json()
     } catch (error) {
