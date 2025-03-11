@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { knex } from "@/database/knex"
-import { number, z } from "zod"
+import { z } from "zod"
 import { AppError } from "@/utils/AppError"
 
 class ProductController {
