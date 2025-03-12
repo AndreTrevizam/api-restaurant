@@ -17,17 +17,17 @@ class TablesSessionsController {
                 .orderBy("opened_at", "desc")
                 .first()
 
-                if (session && !session.closed_at) {
-                    throw new AppError("This table is already opened")
-                }
-            
+            if (session && !session.closed_at) {
+                throw new AppError("This table is already opened")
+            }
+
             await knex<TableSessionRepository>("tables_sessions").insert({
                 table_id,
                 opened_at: knex.fn.now()
             })
 
             return res.status(201).json()
-        } catch (error) {    
+        } catch (error) {
             next(error)
         }
     }
@@ -48,11 +48,27 @@ class TablesSessionsController {
         try {
             const id = z.string()
                 .transform((value) => Number(value))
-                .refine((value) => !isNaN(value), {message: "ID must be a number"})
+                .refine((value) => !isNaN(value), { message: "ID must be a number" })
                 .parse(req.params.id)
 
+            const session = await knex<TableSessionRepository>("tables_sessions")
+                .where({ id })
+                .first()
+
+            if (!session) {
+                throw new AppError("Session table not found")
+            }
+
+            if (session.closed_at) {
+                throw new AppError("Session table is already closed")
+            }
+
+            await knex<TableSessionRepository>("tables_sessions").update({
+                closed_at: knex.fn.now()
+            }).where({ id })
+
             return res.json()
-            
+
         } catch (error) {
             next(error)
         }
